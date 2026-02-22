@@ -39,7 +39,45 @@
 
 <div id="agenda"></div>
 
-<script src="script.js" defer></script>
+<script>
+const URL = "https://script.google.com/macros/s/AKfycbyh3Q7qh8ZPVzBnoTDPR2pZRRC_S3Gwi5YrvfhlVsVQD4eNFo3HRq8lUr5b0UoEeyPF/exec";
+
+document.addEventListener("DOMContentLoaded", function () {
+    cargarAgenda();
+});
+
+async function cargarAgenda() {
+    try {
+        const response = await fetch(URL);
+        const data = await response.json();
+
+        const contenedor = document.getElementById("agenda");
+        contenedor.innerHTML = "";
+
+        data.forEach(turno => {
+            const div = document.createElement("div");
+            div.classList.add("turno");
+
+            if (turno.estado.toLowerCase() === "libre") {
+                div.classList.add("libre");
+            } else {
+                div.classList.add("ocupado");
+            }
+
+            div.innerHTML = `
+                <strong>${turno.fecha}</strong><br>
+                Hora: ${turno.hora}<br>
+                Estado: ${turno.estado}
+            `;
+
+            contenedor.appendChild(div);
+        });
+
+    } catch (error) {
+        console.error("Error cargando agenda:", error);
+    }
+}
+</script>
 
 </body>
 </html>
