@@ -10,16 +10,23 @@
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       padding: 20px;
+      margin: 0;
     }
 
     h1 {
       text-align: center;
+      margin-bottom: 30px;
+    }
+
+    #agenda {
+      max-width: 600px;
+      margin: auto;
     }
 
     .turno {
       background: white;
       padding: 15px;
-      margin: 10px 0;
+      margin-bottom: 12px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
@@ -31,51 +38,67 @@
     .ocupado {
       border-left: 6px solid #e74c3c;
     }
+
+    .error {
+      text-align: center;
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
 <h1>Agenda Estética</h1>
 
-<div id="agenda"></div>
+<div id="agenda">Cargando turnos...</div>
 
 <script>
-const URL = "https://script.google.com/macros/s/AKfycbyh3Q7qh8ZPVzBnoTDPR2pZRRC_S3Gwi5YrvfhlVsVQD4eNFo3HRq8lUr5b0UoEeyPF/exec";
+const URL = "https://script.google.com/macros/s/AKfycbx0Oo4q1vM32nCdMtJu-uIQ_YHOX3cUu5DvwLQSZKSVwr85t1wqjrHHBXv2XfSty_xd/exec";
 
-document.addEventListener("DOMContentLoaded", function () {
-    cargarAgenda();
-});
+document.addEventListener("DOMContentLoaded", cargarAgenda);
 
 async function cargarAgenda() {
-    try {
-        const response = await fetch(URL);
-        const data = await response.json();
+  const contenedor = document.getElementById("agenda");
 
-        const contenedor = document.getElementById("agenda");
-        contenedor.innerHTML = "";
+  try {
+    const response = await fetch(URL);
+    const data = await response.json();
 
-        data.forEach(turno => {
-            const div = document.createElement("div");
-            div.classList.add("turno");
-
-            if (turno.estado.toLowerCase() === "libre") {
-                div.classList.add("libre");
-            } else {
-                div.classList.add("ocupado");
-            }
-
-            div.innerHTML = `
-                <strong>${turno.fecha}</strong><br>
-                Hora: ${turno.hora}<br>
-                Estado: ${turno.estado}
-            `;
-
-            contenedor.appendChild(div);
-        });
-
-    } catch (error) {
-        console.error("Error cargando agenda:", error);
+    if (!Array.isArray(data)) {
+      contenedor.innerHTML = '<div class="error">Error en los datos recibidos</div>';
+      return;
     }
+
+    if (data.length === 0) {
+      contenedor.innerHTML = "No hay turnos cargados.";
+      return;
+    }
+
+    contenedor.innerHTML = "";
+
+    data.forEach(turno => {
+      const div = document.createElement("div");
+      div.classList.add("turno");
+
+      if (turno.estado && turno.estado.toLowerCase() === "libre") {
+        div.classList.add("libre");
+      } else {
+        div.classList.add("ocupado");
+      }
+
+      div.innerHTML = `
+        <strong>${turno.fecha || "-"}</strong><br>
+        Hora: ${turno.hora || "-"}<br>
+        Estado: ${turno.estado || "-"}
+      `;
+
+      contenedor.appendChild(div);
+    });
+
+  } catch (error) {
+    contenedor.innerHTML = '<div class="error">Error cargando la agenda</div>';
+    console.error(error);
+  }
 }
 </script>
 
